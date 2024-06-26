@@ -23,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   LatLng? endPoint;
   List<String> _startSuggestions = [];
   List<String> _endSuggestions = [];
+  List<LatLng> _routePoints = [];
 
   @override
   void initState() {
@@ -38,6 +39,12 @@ class _HomePageState extends State<HomePage> {
     log('Start Point: $startPoint');
     log('End Point: $endPoint');
 
+    if (startPoint != null && endPoint != null) {
+      _routePoints = await _fetchRoute(startPoint!, endPoint!);
+    } else {
+      _routePoints = [];
+    }
+
     setState(() {});
   }
 
@@ -51,6 +58,20 @@ class _HomePageState extends State<HomePage> {
       log('Error: $e');
     }
     return null;
+  }
+
+  Future<List<LatLng>> _fetchRoute(LatLng start, LatLng end) async {
+    final url =
+        'http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final List coordinates = json['routes'][0]['geometry']['coordinates'];
+
+      return coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
+    }
+    return [];
   }
 
   Future<void> _fetchSuggestions(String query, bool isStart) async {
@@ -222,11 +243,11 @@ class _HomePageState extends State<HomePage> {
       children: [
         openStreetMapTileLayer,
         MarkerLayer(markers: markers),
-        if (startPoint != null && endPoint != null)
+        if (_routePoints.isNotEmpty)
           PolylineLayer(
             polylines: [
               Polyline(
-                points: [startPoint!, endPoint!],
+                points: _routePoints,
                 strokeWidth: 4.0,
                 color: Colors.blue,
               ),
