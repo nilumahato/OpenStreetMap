@@ -8,9 +8,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
-  final Position position;
-
-  const HomePage({required this.position, super.key});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -24,11 +22,20 @@ class _HomePageState extends State<HomePage> {
   List<String> _startSuggestions = [];
   List<String> _endSuggestions = [];
   List<LatLng> _routePoints = [];
+  LatLng? _currentPosition;
 
   @override
   void initState() {
     super.initState();
-    // Optionally, you could use the initial position here
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _currentPosition = LatLng(position.latitude, position.longitude);
+    });
   }
 
   Future<void> _updatePolyline() async {
@@ -86,11 +93,11 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    // Define the bounding box for Nepal
-    const String nepalViewbox = '80.0586,30.4227,88.2015,26.347';
+    // Define the bounding box for Pokhara
+    const String pokharaViewbox = '83.9582,28.2846,84.1116,28.2669';
 
     final url =
-        'https://nominatim.openstreetmap.org/search?q=$query&format=json&addressdetails=1&limit=5&viewbox=$nepalViewbox&bounded=1';
+        'https://nominatim.openstreetmap.org/search?q=$query&format=json&addressdetails=1&limit=5&viewbox=$pokharaViewbox&bounded=1';
 
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
@@ -113,7 +120,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Open Street Map in Flutter',
+          'Pokhara Bus Routes',
           style: TextStyle(fontSize: 22),
         ),
       ),
@@ -231,11 +238,26 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    if (_currentPosition != null) {
+      markers.add(
+        Marker(
+          point: _currentPosition!,
+          width: 60,
+          height: 60,
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.my_location,
+            color: Colors.blue,
+            size: 30,
+          ),
+        ),
+      );
+    }
+
     return FlutterMap(
       options: MapOptions(
-        initialCenter:
-            LatLng(widget.position.latitude, widget.position.longitude),
-        initialZoom: 20,
+        initialCenter: _currentPosition ?? const LatLng(28.2096, 83.9856),
+        initialZoom: 18,
         interactionOptions: const InteractionOptions(
           flags: ~InteractiveFlag.doubleTapZoom,
         ),
