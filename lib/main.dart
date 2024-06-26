@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:openstreetmap/homepage.dart';
+import 'package:openstreetmap/locationservices.dart';
+import 'package:latlong2/latlong.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,17 +11,54 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'OpenStreetMAp',
+      title: 'OpenStreetMap',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const LocationPermissionHandler(),
+    );
+  }
+}
+
+class LocationPermissionHandler extends StatelessWidget {
+  const LocationPermissionHandler({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Position?>(
+      future: LocationService().getCurrentLocation(),
+      builder: (context, AsyncSnapshot<Position?> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        } else {
+          if (snapshot.hasData && snapshot.data != null) {
+            // Convert Position to LatLng
+            LatLng currentPosition = LatLng(
+              snapshot.data!.latitude,
+              snapshot.data!.longitude,
+            );
+
+            // Navigate to home page with the obtained location
+            return HomePage(currentPosition: currentPosition);
+          } else {
+            // Handle case where location couldn't be retrieved
+            return const Scaffold(
+              body: Center(
+                child: Text('Unable to fetch current location'),
+              ),
+            );
+          }
+        }
+      },
     );
   }
 }

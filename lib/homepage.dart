@@ -2,13 +2,13 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final LatLng currentPosition;
+  const HomePage({super.key, required this.currentPosition});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -22,20 +22,19 @@ class _HomePageState extends State<HomePage> {
   List<String> _startSuggestions = [];
   List<String> _endSuggestions = [];
   List<LatLng> _routePoints = [];
-  LatLng? _currentPosition;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    // Delay setting initial location until after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setInitialLocation();
+    });
   }
 
-  Future<void> _getCurrentLocation() async {
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _currentPosition = LatLng(position.latitude, position.longitude);
-    });
+  void _setInitialLocation() {
+    _mapController.move(widget.currentPosition, 18.0);
   }
 
   Future<void> _updatePolyline() async {
@@ -238,25 +237,24 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    if (_currentPosition != null) {
-      markers.add(
-        Marker(
-          point: _currentPosition!,
-          width: 60,
-          height: 60,
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.my_location,
-            color: Colors.blue,
-            size: 30,
-          ),
+    markers.add(
+      Marker(
+        point: widget.currentPosition,
+        width: 60,
+        height: 60,
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.my_location,
+          color: Colors.blue,
+          size: 30,
         ),
-      );
-    }
+      ),
+    );
 
     return FlutterMap(
+      mapController: _mapController,
       options: MapOptions(
-        initialCenter: _currentPosition ?? const LatLng(28.2096, 83.9856),
+        initialCenter: widget.currentPosition,
         initialZoom: 18,
         interactionOptions: const InteractionOptions(
           flags: ~InteractiveFlag.doubleTapZoom,
