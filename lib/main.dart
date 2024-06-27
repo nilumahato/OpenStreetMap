@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:openstreetmap/homepage.dart';
-import 'package:openstreetmap/locationservices.dart';
+import 'package:openstreetmap/Screens/homescreen.dart';
+import 'package:openstreetmap/Widget/locationservices.dart';
 import 'package:latlong2/latlong.dart';
 
 void main() {
@@ -48,7 +48,7 @@ class LocationPermissionHandler extends StatelessWidget {
             );
 
             // Navigate to home page with the obtained location
-            return HomePage(currentPosition: currentPosition);
+            return HomeScreen(currentPosition: currentPosition);
           } else {
             // Handle case where location couldn't be retrieved
             return const Scaffold(
