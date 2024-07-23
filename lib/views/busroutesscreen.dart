@@ -353,7 +353,7 @@ class _BusRoutesScreenState extends State<BusRoutesScreen> {
                     color: Colors.green,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 15),
                 if (widget.routes.isNotEmpty)
                   ...widget.routes.map((route) => Text(
                         'Bus Route: ${route["route_name"]}',
