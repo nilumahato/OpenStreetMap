@@ -39,7 +39,7 @@ class BusRouteScreen extends StatelessWidget {
                 point: routePoints.first,
                 child: const Icon(
                   Icons.location_on,
-                  size: 50,
+                  size: 48,
                   color: Colors.red,
                 ),
               ),
@@ -49,7 +49,7 @@ class BusRouteScreen extends StatelessWidget {
                 point: routePoints.last,
                 child: const Icon(
                   Icons.location_on,
-                  size: 50,
+                  size: 48,
                   color: Colors.green,
                 ),
               ),
